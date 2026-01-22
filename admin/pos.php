@@ -1085,7 +1085,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         let cart = [];
         let currentCategory = null;
         let orderType = 'walkin';
-        let taxRate = 0.12;
+        let taxRate = 0;
         
         // DOM Elements
         const categoriesList = document.getElementById('categories-list');
