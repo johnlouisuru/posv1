@@ -95,7 +95,7 @@ function createProduct() {
         
         $stmt->execute([
             $_POST['category_id'] ?? null,
-            $_POST['sku'] ?? null,
+            !empty($_POST['sku']) ? $_POST['sku'] : null,
             $_POST['name'],
             $_POST['description'] ?? null,
             $_POST['price'],
@@ -171,7 +171,7 @@ function updateProduct() {
         
         $stmt->execute([
             $_POST['category_id'] ?? null,
-            $_POST['sku'] ?? null,
+            !empty($_POST['sku']) ? $_POST['sku'] : null,
             $_POST['name'],
             $_POST['description'] ?? null,
             $_POST['price'],
