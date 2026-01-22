@@ -13,7 +13,7 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
-    echo password_hash('123456', PASSWORD_DEFAULT);
+    // echo password_hash('123456', PASSWORD_DEFAULT);
     if (!empty($username) && !empty($password)) {
         $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? AND is_active = 1");
         $stmt->execute([$username]);
