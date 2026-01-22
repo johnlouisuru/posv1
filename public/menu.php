@@ -186,6 +186,18 @@ if (!empty($_SESSION['cart'])) {
         font-size: 1rem;
     }
 }
+
+.category-title {
+        font-size: 2rem;
+        font-weight: bold;
+        /* Apply gradient as background */
+        /* background: linear-gradient(90deg, #ff7e5f, #feb47b); */
+        background-color: #6c757d;
+        background: radial-gradient(circle, #ff7e5f, #feb47b);
+        -webkit-background-clip: text; /* For Safari/Chrome */
+        background-clip: text;
+        color: transparent; /* Make text transparent so gradient shows */
+    }
     </style>
 </head>
 <body>
@@ -236,8 +248,8 @@ if (!empty($_SESSION['cart'])) {
             <?php foreach ($categories as $category): ?>
             <?php if (!empty($productsByCategory[$category['id']])): ?>
             <div class="category-section" data-category="<?php echo $category['id']; ?>">
-                <h4 class="category-title mb-3" style="color: <?php echo $category['color_code']; ?>">
-                    <i class="fas fa-<?php echo getCategoryIcon($category['name']); ?> me-2"></i>
+                <h4 class="category-title mb-3 p-2 gradient-text" style="color: <?php echo $category['color_code']; ?>; text-shadow: 2px 2px 2px #3d2d31;">
+                    <!-- <i class="fas fa-<?php echo getCategoryIcon($category['name']); ?> me-2"></i> -->
                     <?php echo htmlspecialchars($category['name']); ?>
                 </h4>
                 
@@ -253,7 +265,16 @@ if (!empty($_SESSION['cart'])) {
                         
                         <div class="product-card">
                             <div class="product-image">
-                                <i class="fas fa-<?php echo getProductIcon($product['name']); ?>"></i>
+                                <!-- <i class="fas fa-<?php echo getProductIcon($product['name']); ?>"></i> -->
+                                
+                                <?php 
+                                    if(empty($product['image_url'])) { ?>
+                                        <i class="fas fa-<?php echo getProductIcon($product['name']); ?>"></i>
+                                      <?php }else { ?>
+                                      <img src="../<?php echo $product['image_url']; ?>"  height="100%" width="100px" class="img-fluid">
+                                        <?php  } ?>
+
+                               
                             </div>
                             
                             <div class="product-body">

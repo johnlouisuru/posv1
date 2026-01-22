@@ -654,7 +654,7 @@ function getProduct() {
                                     <tr>
                                         <td>
                                             <?php if ($product['image_url']): ?>
-                                            <img src="<?php echo htmlspecialchars($product['image_url']); ?>" 
+                                            <img src="../<?php echo htmlspecialchars($product['image_url']); ?>" 
                                                  alt="<?php echo htmlspecialchars($product['name']); ?>" 
                                                  class="product-image">
                                             <?php else: ?>
