@@ -419,7 +419,8 @@ if (!empty($_SESSION['cart'])) {
                 </div>
             </div>
             <div class="d-grid gap-2">
-                <button class="btn btn-success btn-lg" onclick="proceedToCheckout()" <?php echo empty($cartItems) ? 'disabled' : ''; ?>>
+                <!-- In cart sidebar -->
+                <button class="btn btn-success btn-lg" onclick="proceedToCheckout()" id="sidebar-checkout-btn">
                     <i class="fas fa-credit-card me-2"></i> Proceed to Checkout
                 </button>
                 <button class="btn btn-outline-secondary" onclick="toggleCart()">
@@ -440,7 +441,8 @@ if (!empty($_SESSION['cart'])) {
                 <i class="fas fa-map-pin"></i>
                 <span>Track Order</span>
             </button>
-            <button class="action-btn checkout-btn" onclick="proceedToCheckout()" <?php echo empty($cartItems) ? 'disabled' : ''; ?>>
+            <!-- In bottom action bar -->
+            <button class="action-btn checkout-btn" onclick="proceedToCheckout()" id="bottom-checkout-btn">
                 <i class="fas fa-credit-card"></i>
                 <span>Checkout</span>
             </button>
@@ -562,6 +564,23 @@ function addToCart(productId, quantity = 1, addons = [], specialRequest = '') {
         console.error('Error:', error);
         toastr.error('Network error. Please try again.');
     });
+}
+
+// Function to update checkout button state
+function updateCheckoutButtons(cartCount) {
+    const isCartEmpty = cartCount === 0;
+    
+    // Update sidebar checkout button
+    const sidebarBtn = document.getElementById('sidebar-checkout-btn');
+    if (sidebarBtn) {
+        sidebarBtn.disabled = isCartEmpty;
+    }
+    
+    // Update bottom checkout button
+    const bottomBtn = document.getElementById('bottom-checkout-btn');
+    if (bottomBtn) {
+        bottomBtn.disabled = isCartEmpty;
+    }
 }
 
         function showAddonsModal(productId) {
@@ -805,6 +824,7 @@ function addCustomizedToCart() {
 
 
         // Update cart summary
+// Updated updateCartSummary function
 function updateCartSummary(data) {
     const total = data.cartTotal || 0;
     const count = data.cartCount || 0;
@@ -815,11 +835,8 @@ function updateCartSummary(data) {
     document.getElementById('cart-total').textContent = total.toFixed(2);
     document.getElementById('sidebar-cart-total').textContent = total.toFixed(2);
     
-    // Update bottom bar checkout button
-    const checkoutBtn = document.querySelector('.checkout-btn');
-    if (checkoutBtn) {
-        checkoutBtn.disabled = count === 0;
-    }
+    // Update checkout buttons
+    updateCheckoutButtons(count);
     
     // Update cart sidebar if open
     if (document.getElementById('cartSidebar').classList.contains('open')) {
@@ -827,13 +844,30 @@ function updateCartSummary(data) {
     }
 }
 
-        function proceedToCheckout() {
-            if (<?php echo empty($cartItems) ? 'true' : 'false'; ?>) {
-                toastr.warning('Your cart is empty');
-                return;
+        // Update proceedToCheckout function
+function proceedToCheckout() {
+    const count = parseInt(document.getElementById('cart-count').textContent) || 0;
+    
+    if (count === 0) {
+        toastr.warning('Your cart is empty');
+        return;
+    }
+    
+    // Force a quick session sync before checkout
+    fetch('api/sync-cart.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = 'checkout.php';
+            } else {
+                toastr.error('Failed to sync cart. Please try again.');
             }
-            window.location.href = 'checkout.php';
-        }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            window.location.href = 'checkout.php'; // Try anyway
+        });
+}
 
         function trackOrder() {
             // Check if user has saved tracking info
@@ -970,7 +1004,6 @@ function updateCartDisplay(cart) {
 }
 
 
-// Initialize quantities from cart on page load
 document.addEventListener('DOMContentLoaded', function() {
     // Load initial cart data
     fetch('api/get-cart.php')
@@ -982,6 +1015,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     updateQuantityDisplay(item.product_id, item.quantity);
                 });
                 updateCartSummary(data);
+                
+                // Initialize checkout buttons
+                updateCheckoutButtons(data.cartCount || 0);
             }
         });
 });

@@ -76,9 +76,10 @@ foreach ($_SESSION['cart'] as $item) {
 
 echo json_encode([
     'success' => true,
-    'cartQuantity' => $_SESSION['cart'][$productId]['quantity'] ?? 0,
+    'message' => 'Item added to cart',
     'cart' => $_SESSION['cart'],
     'cartCount' => $cartCount,
-    'cartTotal' => $cartTotal
+    'cartTotal' => $cartTotal,
+    'cartQuantity' => isset($_SESSION['cart'][$productId]) ? $_SESSION['cart'][$productId]['quantity'] : 0
 ]);
 ?>
