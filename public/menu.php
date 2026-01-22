@@ -231,7 +231,7 @@ if (!empty($_SESSION['cart'])) {
     </nav>
 
     <!-- Products Grid -->
-    <main class="container products-container">
+    <main class="container products-container p-2">
         <div id="productsGrid">
             <?php foreach ($categories as $category): ?>
             <?php if (!empty($productsByCategory[$category['id']])): ?>
@@ -241,7 +241,7 @@ if (!empty($_SESSION['cart'])) {
                     <?php echo htmlspecialchars($category['name']); ?>
                 </h4>
                 
-                <div class="row">
+                <div class="row p-4">
                     <?php foreach ($productsByCategory[$category['id']] as $product): ?>
                     <?php 
                     $hasAddons = $product['has_addons'] || !empty($product['addons_data']);
@@ -297,7 +297,7 @@ if (!empty($_SESSION['cart'])) {
                                         <button class="qty-btn" onclick="changeQuantity(<?php echo $product['id']; ?>, -1)">
                                             <i class="fas fa-minus"></i>
                                         </button>
-                                        <span class="qty-display" id="qty-<?php echo $product['id']; ?>">0</span>
+                                        <span class="qty-display" id="qty-<?php echo $product['id']; ?>">1</span>
                                         <button class="qty-btn" onclick="changeQuantity(<?php echo $product['id']; ?>, 1)">
                                             <i class="fas fa-plus"></i>
                                         </button>
