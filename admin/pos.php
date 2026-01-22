@@ -866,7 +866,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         <header class="pos-header">
             <div class="header-left">
             <img src="../uploads/samara.jpg" height="30px" width="30px" alt="Icon" class="header-icon me-2">
-                <h3><i class="fas fa-cash-register me-2"></i> SAMARA's POS</h3>
+                <h3> SAMARA's POS</h3>
             </div>
             <div class="header-right">
                 <div class="user-info">
