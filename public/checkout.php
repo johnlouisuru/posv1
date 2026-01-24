@@ -40,9 +40,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Calculate totals for display
 $subtotal = 0;
 foreach ($_SESSION['cart'] as $item) {
-    $subtotal += $item['price'] * $item['quantity'];
+    $itemTotal = $item['price'] * $item['quantity'];
+    
+    // Add addons price
+    if (!empty($item['addons'])) {
+        foreach ($item['addons'] as $addon) {
+            $itemTotal += $addon['price'] * $addon['quantity'];
+        }
+    }
+    
+    $subtotal += $itemTotal;
 }
-$tax = $subtotal * 0.12;
+$tax = $subtotal * 0;
 $total = $subtotal + $tax;
 ?>
 <!DOCTYPE html>
@@ -159,33 +168,54 @@ $total = $subtotal + $tax;
                         <h4 class="mb-4"><i class="fas fa-receipt"></i> Order Summary</h4>
                         
                         <div class="order-summary">
-                            <?php foreach ($_SESSION['cart'] as $productId => $item): ?>
-                            <div class="order-item">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1"><?php echo htmlspecialchars($item['name']); ?></h6>
-                                        <p class="text-muted mb-1">
-                                            ₱<?php echo number_format($item['price'], 2); ?> × <?php echo $item['quantity']; ?>
-                                            <?php if (!empty($item['addons'])): ?>
-                                            <br>
-                                            <small class="text-success">
-                                                <i class="fas fa-plus-circle"></i>
-                                                <?php echo count($item['addons']); ?> addon(s)
-                                            </small>
-                                            <?php endif; ?>
-                                        </p>
-                                        <?php if (!empty($item['special_request'])): ?>
-                                        <p class="text-warning mb-0">
-                                            <small><i class="fas fa-sticky-note"></i> <?php echo htmlspecialchars($item['special_request']); ?></small>
-                                        </p>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div class="text-end">
-                                        <h6 class="mb-0">₱<?php echo number_format($item['price'] * $item['quantity'], 2); ?></h6>
-                                    </div>
-                                </div>
-                            </div>
-                            <?php endforeach; ?>
+                            <!-- In checkout.php, replace the order items display section -->
+<?php foreach ($_SESSION['cart'] as $productId => $item): ?>
+<div class="order-item">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h6 class="mb-1"><?php echo htmlspecialchars($item['name']); ?></h6>
+            <p class="text-muted mb-1">
+                ₱<?php echo number_format($item['price'], 2); ?> × <?php echo $item['quantity']; ?>
+                <?php if (!empty($item['addons'])): ?>
+                <br>
+                <div class="mt-2">
+                    <small class="text-success fw-bold">Addons:</small>
+                    <div class="ps-3 mt-1">
+                        <?php foreach ($item['addons'] as $addon): ?>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <small class="text-muted">
+                                • <?php echo htmlspecialchars($addon['name']); ?> (x<?php echo $addon['quantity']; ?>)
+                            </small>
+                            <small class="text-success">
+                                +₱<?php echo number_format($addon['price'] * $addon['quantity'], 2); ?>
+                            </small>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+            </p>
+            <?php if (!empty($item['special_request'])): ?>
+            <p class="text-warning mb-0">
+                <small><i class="fas fa-sticky-note"></i> <?php echo htmlspecialchars($item['special_request']); ?></small>
+            </p>
+            <?php endif; ?>
+        </div>
+        <div class="text-end">
+            <?php 
+            $itemTotal = $item['price'] * $item['quantity'];
+            // Add addons price
+            if (!empty($item['addons'])) {
+                foreach ($item['addons'] as $addon) {
+                    $itemTotal += $addon['price'] * $addon['quantity'];
+                }
+            }
+            ?>
+            <h6 class="mb-0">₱<?php echo number_format($itemTotal, 2); ?></h6>
+        </div>
+    </div>
+</div>
+<?php endforeach; ?>
                             
                             <div class="totals-section">
                                 <div class="d-flex justify-content-between mb-2">
@@ -193,7 +223,7 @@ $total = $subtotal + $tax;
                                     <span>₱<?php echo number_format($subtotal, 2); ?></span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-2">
-                                    <span>Tax (12%):</span>
+                                    <span>Tax (0%):</span>
                                     <span>₱<?php echo number_format($tax, 2); ?></span>
                                 </div>
                                 <hr>

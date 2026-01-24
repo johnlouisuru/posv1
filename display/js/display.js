@@ -1,7 +1,7 @@
 // display/js/display.js - CORRECTED VERSION
 class DisplayManager {
     constructor() {
-        this.refreshInterval = 30;
+        this.refreshInterval = 5;
         this.refreshTimer = null;
         this.refreshCountdown = null;
         this.currentOrders = [];
@@ -482,7 +482,7 @@ class DisplayManager {
             case 'waiting':
                 buttons = `
                     <button class="btn btn-sm btn-primary" 
-                            onclick="displayManager.updateOrderStatus(${orderId}, 'confirmed', '${this.escapeHtml(orderNumber)}')"
+                            onclick="displayManager.updateOrderStatus(${orderId}, 'preparing', '${this.escapeHtml(orderNumber)}')"
                             title="Confirm order and start preparation">
                         <i class="fas fa-check-circle"></i> Confirm
                     </button>
@@ -686,7 +686,7 @@ class DisplayManager {
         
         // Make actual API call
         $.ajax({
-            url: '../api/cancel-order.php',
+            url: 'api/cancel-order.php',
             method: 'POST',
             data: { 
                 order_id: orderId,

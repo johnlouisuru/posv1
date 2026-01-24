@@ -17,7 +17,7 @@ if (!$orderId || !$status) {
 }
 
 // Validate status - ADD 'confirmed' to valid statuses
-$validStatuses = ['confirmed', 'preparing', 'ready', 'completed'];
+$validStatuses = ['confirmed', 'preparing', 'ready', 'completed', 'cancelled'];
 if (!in_array($status, $validStatuses)) {
     echo json_encode(['success' => false, 'message' => 'Invalid status: ' . $status]);
     exit;
@@ -29,7 +29,8 @@ try {
         'confirmed' => 'confirmed',
         'preparing' => 'preparing',
         'ready' => 'ready',
-        'completed' => 'completed'
+        'completed' => 'completed',
+        'cancelled' => 'cancelled'
     ];
     
     $orderStatus = $statusMap[$status] ?? 'confirmed';
@@ -49,7 +50,8 @@ try {
         'confirmed' => 'pending',
         'preparing' => 'preparing',
         'ready' => 'ready',
-        'completed' => 'ready' // Items marked as ready when order completed
+        'completed' => 'ready', // Items marked as ready when order completed
+        'cancelled' => 'cancelled' // Items marked as cancelled when order cancelled
     ];
     
     $itemStatus = $itemStatusMap[$status] ?? 'pending';

@@ -1,4 +1,5 @@
 <?php
+// api/remove-cart-item.php
 // session_start();
 require_once '../../includes/db.php';
 
@@ -16,9 +17,9 @@ if (isset($_SESSION['cart'][$productId])) {
     unset($_SESSION['cart'][$productId]);
 }
 
-// Calculate cart totals
-$cartCount = 0;
+// Calculate totals
 $cartTotal = 0;
+$cartCount = 0;
 foreach ($_SESSION['cart'] as $item) {
     $cartCount += $item['quantity'];
     $cartTotal += ($item['price'] * $item['quantity']);
@@ -26,8 +27,9 @@ foreach ($_SESSION['cart'] as $item) {
 
 echo json_encode([
     'success' => true,
+    'message' => 'Item removed from cart',
     'cart' => $_SESSION['cart'],
-    'cartCount' => $cartCount,
-    'cartTotal' => $cartTotal
+    'cartTotal' => $cartTotal,
+    'cartCount' => $cartCount
 ]);
 ?>

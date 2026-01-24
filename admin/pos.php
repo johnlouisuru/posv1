@@ -858,6 +858,137 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
     font-size: 16px;
     box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
 }
+
+/* Add to your existing CSS */
+.product-name-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.product-name {
+    flex-grow: 1;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.3;
+}
+
+.addon-indicator {
+    color: var(--primary-color, #007bff);
+    font-size: 14px;
+    cursor: help;
+    padding: 2px;
+    background: rgba(0, 123, 255, 0.1);
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.addon-indicator:hover {
+    background: rgba(0, 123, 255, 0.2);
+    transform: scale(1.1);
+}
+
+/* Alternative styles for a badge-style indicator */
+.addon-indicator.badge-style {
+    background: #28a745;
+    color: white;
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    width: auto;
+    height: auto;
+}
+
+.addon-indicator.badge-style:hover {
+    background: #218838;
+}
+
+/* For a more subtle approach */
+.addon-indicator.subtle {
+    color: #6c757d;
+    background: transparent;
+}
+
+.addon-indicator.subtle:hover {
+    color: var(--primary-color, #007bff);
+}
+
+.product-card {
+    position: relative;
+    /* ... your existing styles ... */
+}
+
+.product-name-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.product-name {
+    flex-grow: 1;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.3;
+}
+
+.addon-indicator {
+    color: var(--primary-color, #007bff);
+    font-size: 14px;
+    cursor: help;
+    padding: 4px;
+    background: rgba(0, 123, 255, 0.1);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    border: 1px solid rgba(0, 123, 255, 0.2);
+}
+
+.addon-indicator:hover {
+    background: rgba(0, 123, 255, 0.2);
+    transform: scale(1.1);
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+}
+
+/* Pulse animation for attention */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.addon-indicator.pulse {
+    animation: pulse 2s infinite;
+    background: linear-gradient(45deg, #007bff, #00bfff);
+    color: white;
+}
+
+/* For global addons - different style */
+.addon-indicator.global {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+    border-color: rgba(40, 167, 69, 0.2);
+}
+
+.addon-indicator.global:hover {
+    background: rgba(40, 167, 69, 0.2);
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
+}
     </style>
 </head>
 <body>
@@ -1211,21 +1342,10 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 url += (url.includes('?') ? '&' : '?') + `search=${encodeURIComponent(search)}`;
             }
             
-            console.log("Loading products from:", url);
-            
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
                     console.log("Products loaded:", data);
-                    
-                    // Find Brown Sugar 16oz
-                    const brownSugar = data.find(p => p.id == 13);
-                    if (brownSugar) {
-                        console.log("Brown Sugar 16oz details:", brownSugar);
-                        console.log("has_addons value:", brownSugar.has_addons);
-                        console.log("has_addons type:", typeof brownSugar.has_addons);
-                        console.log("parseInt(has_addons):", parseInt(brownSugar.has_addons));
-                    }
                     
                     productsContainer.innerHTML = '';
                     
@@ -1239,52 +1359,48 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                         return;
                     }
                     
-                    // Rest of your code...
-                    
-                    // In loadProducts() function
-data.forEach(product => {
-    console.log("Creating card for product:", product.name, "has_addons:", product.has_addons);
-    
-    const card = document.createElement('div');
-    card.className = `product-card ${product.stock <= 0 ? 'out-of-stock' : ''}`;
-    
-    
-    card.onclick = () => {
-        console.log("Product clicked:", product.name);
-        if (product.stock > 0) {
-            addToCart(product);
-        } else {
-            console.log("Product out of stock");
-        }
-    };
-    
-    // Rest of your code...
-    
-    let stockClass = '';
-    let stockText = '';
-    if (product.stock <= 0) {
-        stockClass = 'stock-out';
-        stockText = 'Out of stock';
-    } else if (product.stock <= product.min_stock) {
-        stockClass = 'stock-low';
-        stockText = `Low stock: ${product.stock}`;
-    } else {
-        stockText = `In stock: ${product.stock}`;
-    }
-    
-    card.innerHTML = `
-        <div class="product-name">${product.name}</div>
-        <div class="product-price">₱${parseFloat(product.price).toFixed(2)}</div>
-        <div class="product-stock ${stockClass}">${stockText}</div>
-    `;
-    
-    productsContainer.appendChild(card);
-});
-    })
-    .catch(error => {
-        console.error('Error loading products:', error);
-        showToast('Error loading products', 'error');
-    });
+                    data.forEach(product => {
+                        const card = document.createElement('div');
+                        card.className = `product-card ${product.stock <= 0 ? 'out-of-stock' : ''}`;
+                        
+                        card.onclick = () => {
+                            if (product.stock > 0) {
+                                addToCart(product);
+                            }
+                        };
+                        
+                        let stockClass = '';
+                        let stockText = '';
+                        if (product.stock <= 0) {
+                            stockClass = 'stock-out';
+                            stockText = 'Out of stock';
+                        } else if (product.stock <= product.min_stock) {
+                            stockClass = 'stock-low';
+                            stockText = `Low stock: ${product.stock}`;
+                        } else {
+                            stockText = `In stock: ${product.stock}`;
+                        }
+                        // In displayProducts function
+                        const hasAddons = parseInt(product.has_any_addons) === 1;
+
+                        card.innerHTML = `
+                            <div class="product-name-container">
+                                <div class="product-name">${product.name}</div>
+                                ${hasAddons ? 
+                                    '<div class="addon-indicator" title="Has customizable options"><i class="fas fa-plus-circle"></i></div>' : 
+                                    ''}
+                            </div>
+                            <div class="product-price">₱${parseFloat(product.price).toFixed(2)}</div>
+                            <div class="product-stock ${stockClass}">${stockText}</div>
+                        `;
+                        
+                        productsContainer.appendChild(card);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading products:', error);
+                    showToast('Error loading products', 'error');
+                });
         }
         
         function setupEventListeners() {
@@ -2082,6 +2198,36 @@ function getRandomColor() {
     ];
     return colors[Math.floor(Math.random() * colors.length)];
 }
+
+// function testAddonDetection() {
+//     // Test specific products
+//     const testProducts = [13, 1, 6]; // Brown Sugar 16oz, Americano 16oz, etc.
+    
+//     testProducts.forEach(productId => {
+//         console.log(`=== Testing Product ID: ${productId} ===`);
+        
+//         // Check via API
+//         fetch(`../api/get-addons.php?product_id=${productId}`)
+//             .then(response => response.json())
+//             .then(data => {
+//                 console.log(`Product ${productId} - API Response:`, data);
+//                 console.log(`Has addons: ${data.success && data.addons && data.addons.length > 0}`);
+//                 console.log(`Addon count: ${data.addons ? data.addons.length : 0}`);
+                
+//                 if (data.addons && data.addons.length > 0) {
+//                     data.addons.forEach(addon => {
+//                         console.log(`  - ${addon.name} (Global: ${addon.is_global}, Price: ₱${addon.price})`);
+//                     });
+//                 }
+//             })
+//             .catch(error => {
+//                 console.error(`Error checking product ${productId}:`, error);
+//             });
+//     });
+// }
+
+// Call this in your console to test
+// testAddonDetection();
 
 function escapeHtml(text) {
     if (!text) return '';

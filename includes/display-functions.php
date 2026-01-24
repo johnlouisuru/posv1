@@ -42,7 +42,7 @@ function getDisplaySettings() {
     
     // Get customer display settings (for the public display)
     $sql = "SELECT * FROM public_display_settings 
-            WHERE display_type = 'customer' 
+            WHERE display_type = 'customer'
             LIMIT 1";
     
     $stmt = $pdo->query($sql);
@@ -286,7 +286,7 @@ function createOnlineOrder($cart, $customerName = '', $customerPhone = '') {
         foreach ($cart as $item) {
             $subtotal += $item['price'] * $item['quantity'];
         }
-        $tax = $subtotal * 0.12; // 12% tax
+        $tax = $subtotal * 0; // 12% tax
         $total = $subtotal + $tax;
         
         // 1. Insert into main orders table

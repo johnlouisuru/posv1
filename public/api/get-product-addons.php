@@ -1,4 +1,5 @@
 <?php
+// api/get-product-addons.php - FIXED VERSION
 require_once '../../includes/db.php';
 
 header('Content-Type: application/json');
@@ -10,20 +11,36 @@ $stmt = $pdo->prepare("SELECT id, name, price FROM products WHERE id = ?");
 $stmt->execute([$productId]);
 $product = $stmt->fetch();
 
-// Get addons for this product - FIXED SQL
+if (!$product) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Product not found'
+    ]);
+    exit;
+}
+
+// Get addons for this product - BOTH specific AND global
 $sql = "
-    SELECT a.* 
+    SELECT DISTINCT a.* 
     FROM addons a
-    JOIN product_addons pa ON a.id = pa.addon_id
-    WHERE pa.product_id = ? AND a.is_available = 1
-    
-    UNION ALL
-    
-    SELECT a.* 
-    FROM addons a
-    WHERE a.is_global = 1 AND a.is_available = 1
-    
-    ORDER BY created_at
+    WHERE (
+        -- Product-specific addons
+        a.id IN (
+            SELECT pa.addon_id 
+            FROM product_addons pa 
+            WHERE pa.product_id = ?
+        )
+        OR
+        -- Global addons (available for all products)
+        a.is_global = 1
+    )
+    AND a.is_available = 1
+    ORDER BY 
+        CASE 
+            WHEN a.is_global = 1 THEN 2 
+            ELSE 1 
+        END,
+        a.name
 ";
 
 $stmt = $pdo->prepare($sql);
