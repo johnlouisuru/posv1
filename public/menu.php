@@ -1754,7 +1754,7 @@ if (!empty($_SESSION['cart'])) {
                             </span>
                             <?php if ($hasAddons): ?>
                             <span class="carousel-item-customizable">
-                                <i class="fas fa-cog"></i> Customizable
+                                <i class="fas fa-cog"></i> with Addons
                             </span>
                             <?php endif; ?>
                         </div>
@@ -1861,7 +1861,7 @@ if (!empty($_SESSION['cart'])) {
                 <?php if ($hasAddons): ?>
                 <div class="mb-2">
                     <small class="text-muted">
-                        <i class="fas fa-plus-circle"></i> Customizable
+                        <i class="fas fa-cogs"></i> with Addons
                     </small>
                 </div>
                 <?php endif; ?>
@@ -1871,7 +1871,7 @@ if (!empty($_SESSION['cart'])) {
                     <button class="add-to-cart-btn" 
                             onclick="showAddonsModal(<?php echo $product['id']; ?>)"
                             <?php echo !$isAvailable ? 'disabled' : ''; ?>>
-                        <i class="fas fa-cog me-1"></i> Customize
+                        <i class="fas fa-cart-plus me-1"></i> Add <i class="fas fa-cogs text-info"></i>
                     </button>
                     <?php else: ?>
                     <div class="quantity-control me-2">
