@@ -1162,12 +1162,11 @@ if (!empty($_SESSION['cart'])) {
 /* Prevent text selection during drag */
 .carousel-track,
 .carousel-item {
-    -webkit-user-drag: none;
-    -khtml-user-drag: none;
-    -moz-user-drag: none;
-    -o-user-drag: none;
-    user-drag: none;
+    user-select: none; /* Standard */
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* Old IE/Edge */
 }
+
 
 .carousel-item:hover {
     transform: translateY(-5px);
@@ -1782,11 +1781,12 @@ if (!empty($_SESSION['cart'])) {
 <!-- END OF CAROUSEL BEST SELLERS -->
 
 <!-- Category Navigation -->
-    <nav class="category-nav py-2">
+    <nav class="category-nav py-2" style="background: #cfcf9f;
+background: linear-gradient(90deg, rgba(207, 207, 159, 1) 0%, rgba(214, 214, 161, 1) 20%, rgba(222, 219, 142, 0.49) 59%, rgba(207, 197, 138, 1) 100%);">
         <div class="container">
-            <div class="category-tabs d-flex flex-nowrap overflow-auto" id="categoryTabs" style="gap: 3px; font-size: 10px;">
+            <div class="category-tabs d-flex flex-nowrap overflow-auto" id="categoryTabs" style="gap: 3px; font-size: 12px;">
                 <button class="category-tab active px-3 py-2 rounded" data-category="all" style="white-space: nowrap;">
-                    <i class="fas fa-th-large me-1"></i> All
+                    <i class="fas fa-tags me-1"></i> All
                 </button>
                 <?php foreach ($categories as $category): ?>
                 <button class="category-tab px-3 py-2 rounded" 
@@ -1869,26 +1869,26 @@ if (!empty($_SESSION['cart'])) {
                 <div class="product-actions d-flex">
                     <?php if ($hasAddons): ?>
                     <button class="add-to-cart-btn" 
-                            onclick="showAddonsModal(<?php echo $product['id']; ?>)"
+                            onclick="handleAddButtonClick(<?php echo $product['id']; ?>, true, event)"
                             <?php echo !$isAvailable ? 'disabled' : ''; ?>>
                         <i class="fas fa-cart-plus me-1"></i> Add <i class="fas fa-cogs text-info"></i>
                     </button>
                     <?php else: ?>
-                    <div class="quantity-control me-2">
-                        <button class="qty-btn" onclick="changeQuantity(<?php echo $product['id']; ?>, -1)">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                        <span class="qty-display" id="qty-<?php echo $product['id']; ?>">1</span>
-                        <button class="qty-btn" onclick="changeQuantity(<?php echo $product['id']; ?>, 1)">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                    </div>
-                    <button class="add-to-cart-btn" 
-                            onclick="addProductToCart(<?php echo $product['id']; ?>)"
-                            <?php echo !$isAvailable ? 'disabled' : ''; ?>>
-                        <i class="fas fa-cart-plus me-1"></i> Add
-                    </button>
-                    <?php endif; ?>
+<div class="quantity-control me-2">
+    <button class="qty-btn" onclick="changeQuantity(<?php echo $product['id']; ?>, -1)">
+        <i class="fas fa-minus"></i>
+    </button>
+    <span class="qty-display" id="qty-<?php echo $product['id']; ?>">1</span>
+    <button class="qty-btn" onclick="changeQuantity(<?php echo $product['id']; ?>, 1)">
+        <i class="fas fa-plus"></i>
+    </button>
+</div>
+<button class="add-to-cart-btn" 
+        onclick="handleAddButtonClick(<?php echo $product['id']; ?>, false, event)"
+        <?php echo !$isAvailable ? 'disabled' : ''; ?>>
+    <i class="fas fa-cart-plus me-1"></i> Add
+</button>
+<?php endif; ?>
                 </div>
             </div>
         </div>
@@ -2132,6 +2132,195 @@ function initCarousel() {
     carouselContainer.addEventListener('mouseleave', startCarouselAutoplay);
     
     console.log('Carousel initialized successfully');
+}
+
+// ========== ADD BUTTON HANDLER ==========
+function handleAddButtonClick(productId, hasAddons, event) {
+    // Stop event propagation to prevent card click
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    
+    if (hasAddons) {
+        showAddonsModal(productId);
+    } else {
+        // For products without addons, show quick add modal
+        showQuickAddModal(productId);
+    }
+}
+
+// ========== PRODUCT CARD CLICK HANDLER ==========
+function handleProductCardClick(productId, hasAddons, event) {
+    // Prevent click from bubbling to parent elements
+    event.stopPropagation();
+    
+    // Don't trigger if click was on buttons
+    if (event.target.closest('.add-to-cart-btn') || 
+        event.target.closest('.qty-btn') ||
+        event.target.closest('.quantity-control')) {
+        return;
+    }
+    
+    if (hasAddons) {
+        showAddonsModal(productId);
+    } else {
+        showQuickAddModal(productId);
+    }
+}
+
+// ========== QUANTITY FUNCTIONS ==========
+function changeQuantity(productId, change) {
+    const element = document.getElementById('qty-' + productId);
+    let currentQty = parseInt(element.textContent) || 0;
+    let newQty = Math.max(0, currentQty + change);
+    element.textContent = newQty;
+    
+    // Store for modal use
+    window.productQuantities = window.productQuantities || {};
+    window.productQuantities[productId] = newQty;
+}
+
+// ========== QUICK ADD MODAL FUNCTIONS ==========
+function showQuickAddModal(productId, productData = null) {
+    if (productData) {
+        // Use provided product data
+        displayQuickAddModal(productData, productId);
+    } else {
+        // Fetch product data
+        fetch('api/get-product-addons.php?product_id=' + productId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.product) {
+                    displayQuickAddModal(data.product, productId);
+                } else {
+                    toastr.error('Failed to load product details');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                toastr.error('Network error. Please try again.');
+            });
+    }
+}
+
+function displayQuickAddModal(product, productId) {
+    // Get stored quantity or default to 1
+    const storedQty = window.productQuantities ? (window.productQuantities[productId] || 1) : 1;
+    
+    // Get product image from DOM if available
+    const productElement = document.querySelector(`[data-id="${productId}"]`);
+    let imageHtml = `<i class="fas fa-coffee fa-2x" style="color: #8B4513;"></i>`;
+    
+    if (productElement) {
+        const imgElement = productElement.querySelector('.product-image img, .carousel-item-image img');
+        if (imgElement) {
+            imageHtml = `<img src="${imgElement.src}" alt="${escapeHtml(product.name)}" style="max-height: 80px; max-width: 80px;">`;
+        }
+    }
+    
+    // Create modal
+    const quickAddHtml = `
+        <div class="quick-add-modal">
+            <div class="quick-add-content">
+                <div class="quick-add-header">
+                    <h5>${escapeHtml(product.name)}</h5>
+                    <button class="btn-close" onclick="closeQuickAddModal()"></button>
+                </div>
+                <div class="quick-add-body">
+                    <div class="text-center mb-4">
+                        <div class="quick-add-image mb-3">
+                            ${imageHtml}
+                        </div>
+                        <div class="product-price-lg mb-3">₱${parseFloat(product.price).toFixed(2)}</div>
+                        <div class="d-flex justify-content-center align-items-center mb-3">
+                            <button class="qty-btn" onclick="updateQuickAddQty('minus')">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <span class="mx-4" id="quickQty" style="font-size: 1.5rem; font-weight: bold;">${storedQty}</span>
+                            <button class="qty-btn" onclick="updateQuickAddQty('plus')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <div class="total-price mb-4" id="quickTotal">Total: ₱${(parseFloat(product.price) * storedQty).toFixed(2)}</div>
+                    </div>
+                    <div class="special-request-section mb-4">
+                        <h5><i class="fas fa-sticky-note me-2"></i>Special Instructions</h5>
+                        <textarea class="form-control" id="quickSpecialRequest" rows="3" 
+                                  placeholder="Any special requests? (e.g., extra sauce, no onions, less ice, etc.)"></textarea>
+                    </div>
+                    <div class="quick-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="closeQuickAddModal()">
+                            Cancel
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="confirmQuickAdd(${productId}, '${escapeHtml(product.name)}')">
+                            <i class="fas fa-cart-plus me-1"></i> Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add to body
+    const existingModal = document.querySelector('.quick-add-modal');
+    if (existingModal) existingModal.remove();
+    
+    document.body.insertAdjacentHTML('beforeend', quickAddHtml);
+    
+    // Store product price and quantity for calculations
+    window.quickAddPrice = parseFloat(product.price);
+    window.quickAddQty = storedQty;
+    window.quickAddProductId = productId;
+}
+
+function updateQuickAddQty(action) {
+    if (action === 'minus' && window.quickAddQty > 1) {
+        window.quickAddQty--;
+    } else if (action === 'plus' && window.quickAddQty < 99) {
+        window.quickAddQty++;
+    }
+    
+    document.getElementById('quickQty').textContent = window.quickAddQty;
+    const total = window.quickAddPrice * window.quickAddQty;
+    document.getElementById('quickTotal').textContent = `Total: ₱${total.toFixed(2)}`;
+}
+
+function confirmQuickAdd(productId, productName) {
+    const specialRequestTextarea = document.getElementById('quickSpecialRequest');
+    const specialRequest = specialRequestTextarea ? specialRequestTextarea.value : '';
+    
+    addToCart(productId, window.quickAddQty, [], specialRequest);
+    
+    const message = window.quickAddQty > 1 ? 
+        `Added ${window.quickAddQty} x ${productName} to cart!` : 
+        `Added ${productName} to cart!`;
+    
+    toastr.success(message);
+    closeQuickAddModal();
+}
+
+function closeQuickAddModal() {
+    const modal = document.querySelector('.quick-add-modal');
+    if (modal) modal.remove();
+    window.quickAddPrice = null;
+    window.quickAddQty = null;
+    window.quickAddProductId = null;
+}
+
+// Keep the old addProductToCart function for backward compatibility if needed
+function addProductToCart(productId) {
+    // Fallback function - you can remove this if not needed elsewhere
+    const qtyElement = document.getElementById('qty-' + productId);
+    const quantity = parseInt(qtyElement.textContent) || 1;
+    
+    if (quantity <= 0) {
+        toastr.warning('Please select at least 1 quantity');
+        return;
+    }
+    
+    addToCart(productId, quantity);
+    qtyElement.textContent = '1'; // Reset to default
 }
 
 function addTouchSupport() {
@@ -2823,7 +3012,7 @@ function handleProductCardClick(productId, hasAddons, event) {
                 updateCartSummary(data);
                 const qtyElement = document.getElementById(`qty-${productId}`);
                 if (qtyElement) {
-                    qtyElement.textContent = '0';
+                    qtyElement.textContent = '1';
                 }
                 if (document.getElementById('cartSidebar').classList.contains('open')) {
                     refreshCartItems();
@@ -2848,7 +3037,7 @@ function handleProductCardClick(productId, hasAddons, event) {
         }
         
         addToCart(productId, quantity);
-        qtyElement.textContent = '0';
+        qtyElement.textContent = '1';
     }
     
     function changeQuantity(productId, change) {
