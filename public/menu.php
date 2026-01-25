@@ -3,6 +3,7 @@
 require_once '../includes/db.php';
 $existing_order_handle = '';
 // Initialize cart
+// session_unset();
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
     $_SESSION['cart_id'] = 'CART-' . substr(md5(session_id() . time()), 0, 8);
@@ -1259,7 +1260,7 @@ if (!empty($_SESSION['cart'])) {
 
 .carousel-item-sold {
     font-size: 0.75rem;
-    color: #28a745;
+    color: #ccc91a;
     font-weight: 600;
 }
 
@@ -1414,7 +1415,260 @@ if (!empty($_SESSION['cart'])) {
     }
 }
 
+/* Quick Add Modal Styles */
+.quick-add-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+}
 
+.quick-add-content {
+    background: white;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 400px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease;
+}
+
+.quick-add-header {
+    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.quick-add-header h5 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.quick-add-body {
+    padding: 20px;
+}
+
+.product-price-lg {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #D2691E;
+}
+
+.total-price {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #28a745;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Disabled/out of stock product cards */
+.product-card.disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.product-card.disabled::after {
+    display: none;
+}
+
+.product-card.disabled:hover {
+    transform: none;
+}
+
+/* Loading state */
+.product-card.loading {
+    position: relative;
+    overflow: hidden;
+}
+
+.product-card.loading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: loadingShimmer 1.5s infinite;
+    z-index: 1;
+}
+
+@keyframes loadingShimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Make product cards look clickable */
+.product-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.product-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.product-card:hover::after {
+    box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.3);
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Prevent buttons from looking like they're part of the clickable card */
+.product-actions {
+    position: relative;
+    z-index: 2;
+}
+
+.add-to-cart-btn,
+.quantity-control {
+    position: relative;
+    z-index: 3;
+}
+
+/* Add click animation */
+.product-card.clicked {
+    animation: cardClickPulse 0.5s ease;
+}
+
+@keyframes cardClickPulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+    50% {
+        transform: scale(0.98);
+        box-shadow: 0 15px 40px rgba(139, 69, 19, 0.2);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+}
+
+/* Quick Add Modal Image */
+.quick-add-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    overflow: hidden;
+}
+
+.quick-add-image img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: cover;
+}
+
+.quick-add-image i {
+    font-size: 2.5rem;
+    color: #8B4513;
+}
+/* Carousel item click animation */
+.carousel-item {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.carousel-item.clicked {
+    animation: itemAdded 0.6s ease;
+}
+
+@keyframes itemAdded {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+    50% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 5px rgba(40, 167, 69, 0.3);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+}
+/* Responsive product actions for mobile */
+@media (max-width: 768px) {
+    .product-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .product-actions .quantity-control {
+        width: 100%;
+        margin-right: 0 !important;
+        justify-content: center;
+    }
+    
+    .product-actions .quantity-control .qty-btn {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .product-actions .quantity-control .qty-display {
+        min-width: 40px;
+        font-size: 1.1rem;
+    }
+    
+    .product-actions .add-to-cart-btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 0.95rem;
+    }
+    
+    /* Only apply this to non-customizable products */
+    .product-actions:has(.quantity-control) {
+        flex-direction: column;
+    }
+    
+    /* For customizable products */
+    .product-actions:not(:has(.quantity-control)) .add-to-cart-btn {
+        width: 100%;
+    }
+}
 </style>
 </head>
 <body>
@@ -1439,25 +1693,6 @@ if (!empty($_SESSION['cart'])) {
         </div>
     </header>
 
-    <!-- Category Navigation -->
-    <nav class="category-nav py-2">
-        <div class="container">
-            <div class="category-tabs d-flex flex-nowrap overflow-auto" id="categoryTabs" style="gap: 5px;">
-                <button class="category-tab active px-3 py-2 rounded" data-category="all" style="white-space: nowrap;">
-                    <i class="fas fa-th-large me-1"></i> All
-                </button>
-                <?php foreach ($categories as $category): ?>
-                <button class="category-tab px-3 py-2 rounded" 
-                        data-category="<?php echo $category['id']; ?>"
-                        style="white-space: nowrap; border-left: 4px solid <?php echo $category['color_code']; ?>">
-                    <i class="fas fa-<?php echo getCategoryIcon($category['name']); ?> me-1"></i>
-                    <?php echo htmlspecialchars($category['name']); ?>
-                </button>
-                <?php endforeach; ?>
-            </div>
-        </div>
-    </nav>
-
 <!-- Best Sellers Carousel -->
 <?php if (!empty($bestSellers)): ?>
 <section class="carousel-section">
@@ -1481,7 +1716,7 @@ if (!empty($_SESSION['cart'])) {
                 $rank = $index + 1;
                 $rankClass = $rank <= 3 ? "rank-{$rank}" : "";
                 ?>
-                <div class="carousel-item" onclick="handleCarouselItemClick(<?php echo $product['id']; ?>, <?php echo $hasAddons ? 'true' : 'false'; ?>)">
+                <div class="carousel-item" onclick="handleCarouselItemClick(<?php echo $product['id']; ?>, <?php echo $hasAddons ? 'true' : 'false'; ?>)" style="cursor: pointer;">
                     <?php if ($rank <= 3): ?>
                     <div class="carousel-item-badge <?php echo $rankClass; ?>">
                         <i class="fas fa-trophy"></i> #<?php echo $rank; ?>
@@ -1512,7 +1747,8 @@ if (!empty($_SESSION['cart'])) {
                         </div>
                         <div class="carousel-item-stats">
                             <span class="carousel-item-sold">
-                                <i class="fas fa-shopping-bag"></i>
+                                <!-- <i class="fas fa-shopping-bag"></i> -->
+                                <i class="fas fa-star"></i>
                                 <!-- <?php echo abs($product['total_sold']); ?> sold -->
                                 Popular
                             </span>
@@ -1543,6 +1779,27 @@ if (!empty($_SESSION['cart'])) {
 }
 </style>
 <?php endif; ?>
+<!-- END OF CAROUSEL BEST SELLERS -->
+
+<!-- Category Navigation -->
+    <nav class="category-nav py-2">
+        <div class="container">
+            <div class="category-tabs d-flex flex-nowrap overflow-auto" id="categoryTabs" style="gap: 3px; font-size: 10px;">
+                <button class="category-tab active px-3 py-2 rounded" data-category="all" style="white-space: nowrap;">
+                    <i class="fas fa-th-large me-1"></i> All
+                </button>
+                <?php foreach ($categories as $category): ?>
+                <button class="category-tab px-3 py-2 rounded" 
+                        data-category="<?php echo $category['id']; ?>"
+                        style="white-space: nowrap; border-left: 4px solid <?php echo $category['color_code']; ?>">
+                    <i class="fas fa-<?php echo getCategoryIcon($category['name']); ?> me-1"></i>
+                    <?php echo htmlspecialchars($category['name']); ?>
+                </button>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </nav>
+    
 
     <!-- Products Grid -->
     <main class="container products-container py-3">
@@ -1562,77 +1819,81 @@ if (!empty($_SESSION['cart'])) {
                     $isAvailable = $product['stock'] > 0 || $product['stock'] === null;
                     ?>
                     <div class="col-6 col-md-4 col-lg-3 product-item" 
-                         data-category="<?php echo $product['category_id']; ?>"
-                         data-id="<?php echo $product['id']; ?>">
-                        
-                        <div class="product-card h-100 d-flex flex-column">
-                            <div class="product-image">
-                                <?php if(empty($product['image_url'])): ?>
-                                <img src="../uploads/samara.jpg" alt="<?php echo htmlspecialchars($product['name']); ?>">
-                                    <!-- <i class="fas fa-<?php echo getProductIcon($product['name']); ?> fa-3x" style="color: #8B4513;"></i> -->
-                                <?php else: ?>
-                                    <img src="../<?php echo $product['image_url']; ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="img-fluid">
-                                <?php endif; ?>
-                            </div>
-                            
-                            <div class="product-body flex-grow-1 d-flex flex-column">
-                                <h5 class="product-title"><?php echo htmlspecialchars($product['name']); ?></h5>
-                                
-                                <?php if (!empty($product['description'])): ?>
-                                <p class="product-description small text-muted mb-2">
-                                    <?php echo htmlspecialchars($product['description']); ?>
-                                </p>
-                                <?php endif; ?>
-                                
-                                <div class="mt-auto">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <span class="product-price">
-                                            ₱<?php echo number_format($product['price'], 2); ?>
-                                        </span>
-                                        
-                                        <?php if ($product['stock'] !== null): ?>
-                                        <span class="product-stock <?php echo $isAvailable ? 'in-stock' : 'out-of-stock'; ?>">
-                                            <?php echo $isAvailable ? 'In Stock' : 'Out of Stock'; ?>
-                                        </span>
-                                        <?php endif; ?>
-                                    </div>
-                                    
-                                    <?php if ($hasAddons): ?>
-                                    <div class="mb-2">
-                                        <small class="text-muted">
-                                            <i class="fas fa-plus-circle"></i> Customizable
-                                        </small>
-                                    </div>
-                                    <?php endif; ?>
-                                    
-                                    <div class="product-actions d-flex">
-                                        <?php if ($hasAddons): ?>
-<button class="add-to-cart-btn" 
-        onclick="showAddonsModal(<?php echo $product['id']; ?>)"
-        <?php echo !$isAvailable ? 'disabled' : ''; ?>>
-    <i class="fas fa-cog me-1"></i> Customize
-</button>
-<?php else: ?>
-<div class="quantity-control me-2">
-    <button class="qty-btn" onclick="changeQuantity(<?php echo $product['id']; ?>, -1)">
-        <i class="fas fa-minus"></i>
-    </button>
-    <span class="qty-display" id="qty-<?php echo $product['id']; ?>">1</span>
-    <button class="qty-btn" onclick="changeQuantity(<?php echo $product['id']; ?>, 1)">
-        <i class="fas fa-plus"></i>
-    </button>
-</div>
-<button class="add-to-cart-btn" 
-        onclick="addProductToCart(<?php echo $product['id']; ?>)"
-        <?php echo !$isAvailable ? 'disabled' : ''; ?>>
-    <i class="fas fa-cart-plus me-1"></i> Add
-</button>
-<?php endif; ?>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+     data-category="<?php echo $product['category_id']; ?>"
+     data-id="<?php echo $product['id']; ?>">
+    
+    <div class="product-card h-100 d-flex flex-column" 
+     onclick="handleProductCardClick(<?php echo $product['id']; ?>, <?php echo $hasAddons ? 'true' : 'false'; ?>, event)"
+     tabindex="0"
+     role="button"
+     aria-label="Select <?php echo htmlspecialchars($product['name']); ?>, Price: ₱<?php echo number_format($product['price'], 2); ?><?php echo $hasAddons ? ', Customizable' : ''; ?>">
+        
+        <div class="product-image">
+            <?php if(empty($product['image_url'])): ?>
+            <img src="../uploads/samara.jpg" alt="<?php echo htmlspecialchars($product['name']); ?>">
+            <?php else: ?>
+                <img src="../<?php echo $product['image_url']; ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="img-fluid">
+            <?php endif; ?>
+        </div>
+        
+        <div class="product-body flex-grow-1 d-flex flex-column">
+            <h5 class="product-title"><?php echo htmlspecialchars($product['name']); ?></h5>
+            
+            <?php if (!empty($product['description'])): ?>
+            <p class="product-description small text-muted mb-2">
+                <?php echo htmlspecialchars($product['description']); ?>
+            </p>
+            <?php endif; ?>
+            
+            <div class="mt-auto">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="product-price">
+                        ₱<?php echo number_format($product['price'], 2); ?>
+                    </span>
+                    
+                    <?php if ($product['stock'] !== null): ?>
+                    <span class="product-stock <?php echo $isAvailable ? 'in-stock' : 'out-of-stock'; ?>">
+                        <?php echo $isAvailable ? 'In Stock' : 'Out of Stock'; ?>
+                    </span>
+                    <?php endif; ?>
+                </div>
+                
+                <?php if ($hasAddons): ?>
+                <div class="mb-2">
+                    <small class="text-muted">
+                        <i class="fas fa-plus-circle"></i> Customizable
+                    </small>
+                </div>
+                <?php endif; ?>
+                
+                <div class="product-actions d-flex">
+                    <?php if ($hasAddons): ?>
+                    <button class="add-to-cart-btn" 
+                            onclick="showAddonsModal(<?php echo $product['id']; ?>)"
+                            <?php echo !$isAvailable ? 'disabled' : ''; ?>>
+                        <i class="fas fa-cog me-1"></i> Customize
+                    </button>
+                    <?php else: ?>
+                    <div class="quantity-control me-2">
+                        <button class="qty-btn" onclick="changeQuantity(<?php echo $product['id']; ?>, -1)">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <span class="qty-display" id="qty-<?php echo $product['id']; ?>">1</span>
+                        <button class="qty-btn" onclick="changeQuantity(<?php echo $product['id']; ?>, 1)">
+                            <i class="fas fa-plus"></i>
+                        </button>
                     </div>
+                    <button class="add-to-cart-btn" 
+                            onclick="addProductToCart(<?php echo $product['id']; ?>)"
+                            <?php echo !$isAvailable ? 'disabled' : ''; ?>>
+                        <i class="fas fa-cart-plus me-1"></i> Add
+                    </button>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
                     <?php endforeach; ?>
                 </div>
             </div>
@@ -2105,6 +2366,7 @@ function stopCarouselAutoplay() {
     }
 }
 
+// ========== BEST SOLUTION: QUICK ADD MODAL ==========
 function handleCarouselItemClick(productId, hasAddons) {
     // Don't trigger click if user was dragging/swiping
     if (isDragging || Math.abs(touchStartX - touchEndX) > 10) {
@@ -2114,17 +2376,142 @@ function handleCarouselItemClick(productId, hasAddons) {
     if (hasAddons) {
         showAddonsModal(productId);
     } else {
-        const productElement = document.querySelector(`.product-item[data-id="${productId}"]`);
-        if (productElement) {
-            productElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            productElement.classList.add('highlight-product');
-            setTimeout(() => {
-                productElement.classList.remove('highlight-product');
-            }, 2000);
-        }
+        showQuickAddModal(productId);
     }
 }
+
+// Update the showQuickAddModal to accept optional product data
+function showQuickAddModal(productId, productData = null) {
+    if (productData) {
+        // Use provided product data
+        displayQuickAddModal(productData, productId);
+    } else {
+        // Fetch product data
+        fetch('api/get-product-addons.php?product_id=' + productId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.product) {
+                    displayQuickAddModal(data.product, productId);
+                } else {
+                    toastr.error('Failed to load product details');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                toastr.error('Network error. Please try again.');
+            });
+    }
+}
+function displayQuickAddModal(product, productId) {
+    // Get product image from DOM if available
+    const productElement = document.querySelector(`[data-id="${productId}"]`);
+    let imageHtml = `<i class="fas fa-coffee fa-2x" style="color: #8B4513;"></i>`;
     
+    if (productElement) {
+        const imgElement = productElement.querySelector('.product-image img, .carousel-item-image img');
+        if (imgElement) {
+            imageHtml = `<img src="${imgElement.src}" alt="${escapeHtml(product.name)}" style="max-height: 80px; max-width: 80px;">`;
+        }
+    }
+    
+    // Create modal
+    const quickAddHtml = `
+        <div class="quick-add-modal">
+            <div class="quick-add-content">
+                <div class="quick-add-header">
+                    <h5>${escapeHtml(product.name)}</h5>
+                    <button class="btn-close" onclick="closeQuickAddModal()"></button>
+                </div>
+                <div class="quick-add-body">
+                    <div class="text-center mb-4">
+                        <div class="quick-add-image mb-3">
+                            ${imageHtml}
+                        </div>
+                        <div class="product-price-lg mb-3">₱${parseFloat(product.price).toFixed(2)}</div>
+                        <div class="d-flex justify-content-center align-items-center mb-3">
+                            <button class="qty-btn" onclick="updateQuickAddQty('minus')">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <span class="mx-4" id="quickQty" style="font-size: 1.5rem; font-weight: bold;">1</span>
+                            <button class="qty-btn" onclick="updateQuickAddQty('plus')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <div class="total-price mb-4" id="quickTotal">Total: ₱${parseFloat(product.price).toFixed(2)}</div>
+                    </div>
+                    <div class="quick-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="closeQuickAddModal()">
+                            Cancel
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="confirmQuickAdd(${productId}, '${escapeHtml(product.name)}')">
+                            <i class="fas fa-cart-plus me-1"></i> Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add to body
+    const existingModal = document.querySelector('.quick-add-modal');
+    if (existingModal) existingModal.remove();
+    
+    document.body.insertAdjacentHTML('beforeend', quickAddHtml);
+    
+    // Store product price for calculations
+    window.quickAddPrice = parseFloat(product.price);
+    window.quickAddQty = 1;
+}
+
+function updateQuickAddQty(action) {
+    if (action === 'minus' && window.quickAddQty > 1) {
+        window.quickAddQty--;
+    } else if (action === 'plus' && window.quickAddQty < 99) {
+        window.quickAddQty++;
+    }
+    
+    document.getElementById('quickQty').textContent = window.quickAddQty;
+    const total = window.quickAddPrice * window.quickAddQty;
+    document.getElementById('quickTotal').textContent = `Total: ₱${total.toFixed(2)}`;
+}
+
+function confirmQuickAdd(productId, productName) {
+    addToCart(productId, window.quickAddQty, [], '');
+    
+    const message = window.quickAddQty > 1 ? 
+        `Added ${window.quickAddQty} x ${productName} to cart!` : 
+        `Added ${productName} to cart!`;
+    
+    toastr.success(message);
+    closeQuickAddModal();
+}
+
+function closeQuickAddModal() {
+    const modal = document.querySelector('.quick-add-modal');
+    if (modal) modal.remove();
+    window.quickAddPrice = null;
+    window.quickAddQty = null;
+}
+    
+// ========== PRODUCT CARD CLICK HANDLER ==========
+function handleProductCardClick(productId, hasAddons, event) {
+    // Prevent click from bubbling to parent elements
+    event.stopPropagation();
+    
+    // Don't trigger if click was on buttons (Customize/Add)
+    if (event.target.closest('.add-to-cart-btn') || 
+        event.target.closest('.qty-btn') ||
+        event.target.closest('.quantity-control')) {
+        return;
+    }
+    
+    if (hasAddons) {
+        showAddonsModal(productId);
+    } else {
+        showQuickAddModal(productId);
+    }
+}
+
     // ========== MODAL FUNCTIONS ==========
     function showAddonsModal(productId) {
         const modal = document.getElementById('addonsModal');
@@ -2537,154 +2924,149 @@ function handleCarouselItemClick(productId, hasAddons) {
         }, 300);
     }
     
-    function updateCartDisplay(cart) {
-        const cartItemsContainer = document.querySelector('.cart-items');
+    // Update the cart display to show each item separately
+function updateCartDisplay(cart) {
+    const cartItemsContainer = document.querySelector('.cart-items');
+    
+    if (!cart || Object.keys(cart).length === 0) {
+        cartItemsContainer.innerHTML = `
+            <div class="text-center py-5">
+                <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+                <h5 class="text-muted">Your cart is empty</h5>
+                <p class="text-muted">Add some delicious items!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let cartHtml = '';
+    
+    Object.values(cart).forEach(item => {
+        let itemDescription = escapeHtml(item.name);
         
-        if (!cart || Object.keys(cart).length === 0) {
-            cartItemsContainer.innerHTML = `
-                <div class="text-center py-5">
-                    <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
-                    <h5 class="text-muted">Your cart is empty</h5>
-                    <p class="text-muted">Add some delicious items!</p>
-                </div>
-            `;
-            return;
+        // Show addons if any
+        if (item.addons && item.addons.length > 0) {
+            itemDescription += ' (with addons)';
         }
         
-        let cartHtml = '';
-        
-        Object.values(cart).forEach(item => {
-            let itemTotal = parseFloat(item.price) * item.quantity;
-            let addonsHtml = '';
-            
-            if (item.addons && item.addons.length > 0) {
-                addonsHtml = `
+        cartHtml += `
+            <div class="cart-item" data-unique-key="${item.unique_key}">
+                <div class="cart-item-info">
+                    <h6 class="mb-1">${itemDescription}</h6>
+                    <p class="text-muted mb-1">₱${parseFloat(item.price).toFixed(2)} × ${item.quantity}</p>
+                    
+                    ${item.addons && item.addons.length > 0 ? `
                     <div class="mt-2">
                         <small class="text-success fw-bold">Addons:</small>
                         <div class="ps-3 mt-1">
-                `;
-                
-                item.addons.forEach(addon => {
-                    const addonTotal = parseFloat(addon.price) * addon.quantity;
-                    itemTotal += addonTotal;
+                    ${item.addons.map(addon => `
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted">
+                                    • ${escapeHtml(addon.name)} (x${addon.quantity})
+                                </small>
+                                <small class="text-success">
+                                    +₱${(addon.price * addon.quantity).toFixed(2)}
+                                </small>
+                            </div>
+                    `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
                     
-                    addonsHtml += `
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <small class="text-muted">
-                                • ${escapeHtml(addon.name)} (x${addon.quantity})
-                            </small>
-                            <small class="text-success">
-                                +₱${addonTotal.toFixed(2)}
-                            </small>
-                        </div>
-                    `;
-                });
-                
-                addonsHtml += `
-                        </div>
+                    ${item.special_request ? `
+                    <div class="special-request mt-2">
+                        <small class="text-warning">
+                            <i class="fas fa-sticky-note"></i>
+                            ${escapeHtml(item.special_request)}
+                        </small>
                     </div>
-                `;
-            }
-            
-            cartHtml += `
-                <div class="cart-item" data-id="${item.product_id}">
-                    <div class="cart-item-info">
-                        <h6 class="mb-1">${escapeHtml(item.name)}</h6>
-                        <p class="text-muted mb-1">₱${parseFloat(item.price).toFixed(2)} × ${item.quantity}</p>
-                        ${addonsHtml}
-                        ${item.special_request ? `
-                        <div class="special-request mt-2">
-                            <small class="text-warning">
-                                <i class="fas fa-sticky-note"></i>
-                                ${escapeHtml(item.special_request)}
-                            </small>
-                        </div>
-                        ` : ''}
-                        <div class="mt-2">
-                            <strong>₱${itemTotal.toFixed(2)}</strong>
-                        </div>
-                    </div>
-                    <div class="cart-item-actions">
-                        <button type="button" class="btn btn-sm btn-outline-secondary minus-btn">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                        <span class="mx-2 quantity-display">${item.quantity}</span>
-                        <button type="button" class="btn btn-sm btn-outline-secondary plus-btn">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <button type="button" class="btn btn-sm btn-danger ms-2 delete-btn">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                    ` : ''}
+                    
+                    <div class="mt-2">
+                        <strong>₱${(item.item_total || (item.price * item.quantity)).toFixed(2)}</strong>
                     </div>
                 </div>
-            `;
-        });
-        
-        cartItemsContainer.innerHTML = cartHtml;
-    }
+                <div class="cart-item-actions">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="updateCartItem('${item.unique_key}', -1)">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <span class="mx-2">${item.quantity}</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="updateCartItem('${item.unique_key}', 1)">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-danger ms-2" onclick="removeCartItem('${item.unique_key}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
     
-    function updateCartItem(productId, change) {
-        if (isRefreshing) return;
-        
-        fetch('api/update-cart-item.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                product_id: parseInt(productId),
-                change: parseInt(change)
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                updateCartSummary(data);
-                if (document.getElementById('cartSidebar').classList.contains('open')) {
-                    refreshCartItems();
-                }
-                toastr.info('Cart updated');
-            } else {
-                toastr.error(data.message || 'Failed to update cart');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            toastr.error('Network error. Please try again.');
-        });
-    }
+    cartItemsContainer.innerHTML = cartHtml;
+}
     
-    function removeCartItem(productId) {
-        if (isRefreshing) return;
-        
-        if (!confirm('Remove this item from cart?')) return;
-        
-        fetch('api/remove-cart-item.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                product_id: parseInt(productId)
-            })
+    function updateCartItem(uniqueKey, change) {
+    if (isRefreshing) return;
+    
+    fetch('api/update-cart-item.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            unique_key: uniqueKey,
+            change: parseInt(change)
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                updateCartSummary(data);
-                if (document.getElementById('cartSidebar').classList.contains('open')) {
-                    refreshCartItems();
-                }
-                toastr.success('Removed from cart');
-            } else {
-                toastr.error(data.message || 'Failed to remove item');
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateCartSummary(data);
+            if (document.getElementById('cartSidebar').classList.contains('open')) {
+                refreshCartItems();
             }
+            toastr.info('Cart updated');
+        } else {
+            toastr.error(data.message || 'Failed to update cart');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        toastr.error('Network error. Please try again.');
+    });
+}
+
+function removeCartItem(uniqueKey) {
+    if (isRefreshing) return;
+    
+    if (!confirm('Remove this item from cart?')) return;
+    
+    fetch('api/remove-cart-item.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            unique_key: uniqueKey
         })
-        .catch(error => {
-            console.error('Error:', error);
-            toastr.error('Network error. Please try again.');
-        });
-    }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateCartSummary(data);
+            if (document.getElementById('cartSidebar').classList.contains('open')) {
+                refreshCartItems();
+            }
+            toastr.success('Removed from cart');
+        } else {
+            toastr.error(data.message || 'Failed to remove item');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        toastr.error('Network error. Please try again.');
+    });
+}
     
     function proceedToCheckout() {
         const count = parseInt(document.getElementById('cart-count').textContent) || 0;

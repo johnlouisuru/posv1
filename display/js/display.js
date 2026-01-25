@@ -482,9 +482,9 @@ class DisplayManager {
             case 'waiting':
                 buttons = `
                     <button class="btn btn-sm btn-primary" 
-                            onclick="displayManager.updateOrderStatus(${orderId}, 'preparing', '${this.escapeHtml(orderNumber)}')"
-                            title="Confirm order and start preparation">
-                        <i class="fas fa-check-circle"></i> Confirm
+                            onclick="displayManager.updateOrderStatus(${orderId}, 'completed', '${this.escapeHtml(orderNumber)}')"
+                            title="Serve order immediately">
+                        <i class="fas fa-check-circle"></i> Mark Served
                     </button>
                     <button class="btn btn-sm btn-warning" 
                             onclick="displayManager.updateOrderStatus(${orderId}, 'preparing', '${this.escapeHtml(orderNumber)}')"
@@ -496,6 +496,11 @@ class DisplayManager {
                 
             case 'preparing':
                 buttons = `
+                <button class="btn btn-sm btn-primary" 
+                            onclick="displayManager.updateOrderStatus(${orderId}, 'completed', '${this.escapeHtml(orderNumber)}')"
+                            title="Serve order immediately">
+                        <i class="fas fa-check-circle"></i> Mark Served
+                    </button>
                     <button class="btn btn-sm btn-success" 
                             onclick="displayManager.updateOrderStatus(${orderId}, 'ready', '${this.escapeHtml(orderNumber)}')"
                             title="Mark order as ready for pickup">

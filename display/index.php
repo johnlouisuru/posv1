@@ -376,9 +376,9 @@ $orders = getProcessingOrders($maxItems);
                                 <!-- Status progression buttons -->
 <?php if ($currentStatus == 'waiting'): ?>
     <button class="btn btn-sm btn-primary" 
-            onclick="displayManager.updateOrderStatus(<?php echo $orderId; ?>, 'confirmed', '<?php echo $orderNumber; ?>')"
-            title="Confirm order and start preparation">
-        <i class="fas fa-check-circle"></i> Confirm
+            onclick="displayManager.updateOrderStatus(<?php echo $orderId; ?>, 'completed', '<?php echo $orderNumber; ?>')"
+            title="Serve order immediately">
+        <i class="fas fa-check-circle"></i> Mark Served
     </button>
     <button class="btn btn-sm btn-warning" 
             onclick="displayManager.updateOrderStatus(<?php echo $orderId; ?>, 'preparing', '<?php echo $orderNumber; ?>')"
@@ -387,6 +387,11 @@ $orders = getProcessingOrders($maxItems);
     </button>
     
 <?php elseif ($currentStatus == 'preparing'): ?>
+<button class="btn btn-sm btn-primary" 
+            onclick="displayManager.updateOrderStatus(<?php echo $orderId; ?>, 'completed', '<?php echo $orderNumber; ?>')"
+            title="Serve order immediately">
+        <i class="fas fa-check-circle"></i> Mark Served
+    </button>
     <button class="btn btn-sm btn-success" 
             onclick="displayManager.updateOrderStatus(<?php echo $orderId; ?>, 'ready', '<?php echo $orderNumber; ?>')"
             title="Mark order as ready for pickup">

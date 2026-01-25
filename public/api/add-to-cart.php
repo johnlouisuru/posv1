@@ -1,5 +1,5 @@
 <?php
-// api/add-to-cart.php
+// api/add-to-cart.php - UPDATED VERSION
 // session_start();
 require_once '../../includes/db.php';
 
@@ -26,27 +26,55 @@ if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
 
-// Add or update item in cart
-if (isset($_SESSION['cart'][$productId])) {
-    // Update existing item
-    $_SESSION['cart'][$productId]['quantity'] += $quantity;
-    if (!empty($addons)) {
-        // Merge addons
-        $existingAddons = $_SESSION['cart'][$productId]['addons'] ?? [];
-        $_SESSION['cart'][$productId]['addons'] = array_merge($existingAddons, $addons);
+// Sort addons by ID to ensure consistent comparison
+usort($addons, function($a, $b) {
+    return ($a['addon_id'] ?? $a['id'] ?? 0) - ($b['addon_id'] ?? $b['id'] ?? 0);
+});
+
+// Create a unique key based on product + addons configuration + special request
+// Convert addons to a string for comparison
+$addonsKey = '';
+if (!empty($addons)) {
+    $addonParts = [];
+    foreach ($addons as $addon) {
+        $addonId = $addon['addon_id'] ?? $addon['id'] ?? 0;
+        $addonQty = $addon['quantity'] ?? 1;
+        $addonParts[] = "{$addonId}:{$addonQty}";
     }
-    if ($specialRequest) {
-        $_SESSION['cart'][$productId]['special_request'] = $specialRequest;
+    $addonsKey = implode(',', $addonParts);
+}
+
+$specialRequestKey = md5(trim($specialRequest));
+
+// Create unique cart item ID
+$cartItemId = "{$productId}_{$addonsKey}_{$specialRequestKey}";
+
+// Check if this exact configuration already exists in cart
+$itemExists = false;
+foreach ($_SESSION['cart'] as $existingItemId => $item) {
+    // Extract components from existing item ID
+    $parts = explode('_', $existingItemId);
+    if ($parts[0] == $productId && 
+        ($parts[1] ?? '') == $addonsKey && 
+        ($parts[2] ?? '') == $specialRequestKey) {
+        
+        // Same configuration exists - update quantity
+        $_SESSION['cart'][$existingItemId]['quantity'] += $quantity;
+        $itemExists = true;
+        break;
     }
-} else {
-    // Add new item
-    $_SESSION['cart'][$productId] = [
+}
+
+// If not exists, add as new item
+if (!$itemExists) {
+    $_SESSION['cart'][$cartItemId] = [
         'product_id' => $productId,
         'name' => $product['name'],
         'price' => $product['price'],
         'quantity' => $quantity,
         'addons' => $addons,
-        'special_request' => $specialRequest
+        'special_request' => $specialRequest,
+        'unique_key' => $cartItemId // Store for reference
     ];
 }
 

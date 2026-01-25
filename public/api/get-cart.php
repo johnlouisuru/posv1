@@ -1,11 +1,10 @@
 <?php
-// api/get-cart.php - FIXED VERSION
+// api/get-cart.php - UPDATED VERSION
 // session_start();
 require_once '../../includes/db.php';
 
 header('Content-Type: application/json');
 
-// Initialize response
 $response = [
     'success' => false,
     'cart' => [],
@@ -24,10 +23,22 @@ try {
     $cartTotal = 0;
     $cartCount = 0;
     
-    // Get product details for items in cart
-    $productIds = array_keys($cart);
-    $placeholders = str_repeat('?,', count($productIds) - 1) . '?';
+    // Get all product IDs
+    $productIds = [];
+    foreach ($cart as $item) {
+        if (isset($item['product_id'])) {
+            $productIds[] = $item['product_id'];
+        }
+    }
     
+    if (empty($productIds)) {
+        $response['success'] = true;
+        echo json_encode($response);
+        exit;
+    }
+    
+    // Get product details
+    $placeholders = str_repeat('?,', count($productIds) - 1) . '?';
     $stmt = $pdo->prepare("SELECT id, name, price FROM products WHERE id IN ($placeholders)");
     $stmt->execute($productIds);
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -38,9 +49,11 @@ try {
         $productMap[$product['id']] = $product;
     }
     
-    // Build enhanced cart with product details
+    // Build enhanced cart
     $enhancedCart = [];
-    foreach ($cart as $productId => $item) {
+    foreach ($cart as $uniqueKey => $item) {
+        $productId = $item['product_id'] ?? 0;
+        
         if (isset($productMap[$productId])) {
             $productInfo = $productMap[$productId];
             
@@ -49,7 +62,6 @@ try {
             // Add addons price
             if (!empty($item['addons'])) {
                 foreach ($item['addons'] as $addon) {
-                    // Make sure addon has proper structure
                     $addonPrice = is_array($addon) ? ($addon['price'] ?? 0) : 0;
                     $addonQty = is_array($addon) ? ($addon['quantity'] ?? 1) : 1;
                     $itemTotal += $addonPrice * $addonQty;
@@ -59,13 +71,13 @@ try {
             $cartTotal += $itemTotal;
             $cartCount += $item['quantity'];
             
-            // Clean up the addons array to prevent circular references
+            // Clean addons
             $cleanAddons = [];
             if (!empty($item['addons'])) {
                 foreach ($item['addons'] as $addon) {
                     if (is_array($addon)) {
                         $cleanAddons[] = [
-                            'addon_id' => $addon['addon_id'] ?? '',
+                            'addon_id' => $addon['addon_id'] ?? $addon['id'] ?? '',
                             'name' => $addon['name'] ?? '',
                             'price' => floatval($addon['price'] ?? 0),
                             'quantity' => intval($addon['quantity'] ?? 1)
@@ -74,13 +86,15 @@ try {
                 }
             }
             
-            $enhancedCart[$productId] = [
+            $enhancedCart[$uniqueKey] = [
+                'unique_key' => $uniqueKey,
                 'product_id' => $productId,
                 'name' => $productInfo['name'],
                 'price' => floatval($productInfo['price']),
                 'quantity' => intval($item['quantity']),
                 'addons' => $cleanAddons,
-                'special_request' => $item['special_request'] ?? ''
+                'special_request' => $item['special_request'] ?? '',
+                'item_total' => floatval($itemTotal)
             ];
         }
     }
