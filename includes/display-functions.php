@@ -311,6 +311,7 @@ function createOnlineOrder($cart, $customerName = '', $customerPhone = '') {
         
         // 2. Insert order items
         foreach ($cart as $productId => $item) {
+        $productId = (int)$item['product_id'];  // <-- This is the fix!
             $itemSql = "
                 INSERT INTO order_items 
                 (order_id, product_id, quantity, unit_price, total_price, special_request)
